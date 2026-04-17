@@ -25,12 +25,10 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
 
-  /* Auth Screen */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
   .auth-card { background: var(--surface); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--surface2); }
   .google-btn { width: 100%; padding: 14px; margin-top: 20px; background: white; color: #444; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; cursor: pointer; }
 
-  /* Main UI */
   .container { width: 100%; max-width: 420px; display: none; }
   .container.show { display: block; }
 
@@ -55,7 +53,6 @@
   .start-btn { width: 100%; padding: 18px; background: var(--accent); border: none; border-radius: 18px; color: #0a0f0d; font-size: 1.2rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 20px rgba(0,229,160,0.2); }
   .start-btn.running { background: var(--danger); }
 
-  /* Overlays */
   .overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .overlay.show { display: flex; }
   
@@ -69,7 +66,7 @@
     <h2 style="font-size: 2rem; margin-bottom: 10px;">🎯 رين</h2>
     <p style="color: var(--muted);">سجل دخولك لربط وقتك بحساب جوجل</p>
     <button class="google-btn" onclick="loginWithGoogle()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G" style="width: 20px;">
       الدخول بواسطة جوجل
     </button>
   </div>
@@ -119,14 +116,15 @@
 </div>
 
 <script>
-  // --- إعدادات Firebase (ضع بياناتك هنا) ---
+  // --- إعدادات Firebase المحدثة من صورك يا علي ---
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBf0jgQOn0tkmCUd5ZVy5qkEaZG6YfRB7U",
+    authDomain: "p10-t-2940b.firebaseapp.com",
+    projectId: "p10-t-2940b",
+    storageBucket: "p10-t-2940b.firebasestorage.app",
+    messagingSenderId: "123981816702",
+    appId: "1:123981816702:web:e112d6855ad8b93169092f",
+    measurementId: "G-EXD25WYY94"
   };
   firebase.initializeApp(firebaseConfig);
 
@@ -134,12 +132,11 @@
   let selectedMins = 25;
   let currentUser = null;
 
-  // --- نظام الحسابات وجوجل ---
   function loginWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider).then(res => {
       initApp(res.user);
-    }).catch(err => alert("خطأ: " + err.message));
+    }).catch(err => alert("خطأ في تسجيل الدخول: " + err.message));
   }
 
   function initApp(user) {
@@ -164,9 +161,8 @@
     document.getElementById('user-rank').textContent = r;
   }
 
-  // --- نظام المؤقت ---
   function setMode(m) {
-    selectedMins = (m === 'pomo') ? 25 : 10; // مثال
+    selectedMins = (m === 'pomo') ? 25 : 10;
     resetTimer();
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + m).classList.add('active');
@@ -208,12 +204,12 @@
     let stats = JSON.parse(localStorage.getItem('stats_' + currentUser.uid) || '{"mins":0}');
     stats.mins += selectedMins;
     localStorage.setItem('stats_' + currentUser.uid, JSON.stringify(stats));
-    alert("عمل رائع يا " + currentUser.displayName);
+    alert("عمل رائع يا " + currentUser.displayName + "! تم حفظ وقتك.");
     location.reload();
   }
 
   function quitSession() {
-    if(confirm("هل تريد الانسحاب؟")) location.reload();
+    if(confirm("هل تريد الانسحاب؟ لن يتم حفظ الوقت.")) location.reload();
   }
 
   function toggleFullscreen() {
@@ -225,7 +221,6 @@
     firebase.auth().signOut().then(() => location.reload());
   }
 
-  // التحقق من الجلسة
   firebase.auth().onAuthStateChanged(user => { if(user) initApp(user); });
   resetTimer();
 </script>
