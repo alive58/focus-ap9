@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رين - تحدّي التركيز</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #1a2620;
+    --accent: #00e5a0;
+    --text: #e8f5ee;
+    --muted: #5a7a68;
+    --danger: #ff4d6d;
+    --warn: #ffa94d;
+    --glow: rgba(0,229,160,0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-x: hidden; }
+
+  /* Auth Screen */
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; transition: 0.5s; }
+  .auth-card { background: var(--surface); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--surface2); }
+  .google-btn { width: 100%; padding: 14px; margin-top: 20px; background: white; color: #444; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; cursor: pointer; }
+
+  /* Main UI */
+  .container { width: 100%; max-width: 420px; display: none; }
+  .container.show { display: block; }
+
+  .nav-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 12px 20px; border-radius: 18px; margin-bottom: 20px; border: 1px solid var(--surface2); }
+  .user-badge { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 900; }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .fullscreen-icon { position: absolute; top: 10px; left: 10px; cursor: pointer; color: var(--muted); }
+
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+  .tab { padding: 10px; text-align: center; border-radius: 11px; cursor: pointer; color: var(--muted); font-weight: 600; }
+  .tab.active { background: var(--accent); color: #0a0f0d; box-shadow: 0 0 15px var(--glow); }
+
+  .timer-wrap { position: relative; width: 220px; height: 220px; margin: 30px auto; }
+  .timer-display { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; }
+  
+  circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+  .circle-bg { stroke: var(--surface2); }
+  .circle-prog { stroke: var(--accent); stroke-dasharray: 628; stroke-dashoffset: 0; transition: 1s linear; transform: rotate(-90deg); transform-origin: center; }
+
+  .start-btn { width: 100%; padding: 18px; background: var(--accent); border: none; border-radius: 18px; color: #0a0f0d; font-size: 1.2rem; font-weight: 900; cursor: pointer; box-shadow: 0 5px 20px rgba(0,229,160,0.2); }
+  .start-btn.running { background: var(--danger); }
+
+  /* Overlays */
+  .overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .overlay.show { display: flex; }
+  
+  #blocker-timer { font-size: 5rem; font-weight: 900; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="auth-screen">
+  <div class="auth-card">
+    <h2 style="font-size: 2rem; margin-bottom: 10px;">🎯 رين</h2>
+    <p style="color: var(--muted);">سجل دخولك لربط وقتك بحساب جوجل</p>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G">
+      الدخول بواسطة جوجل
+    </button>
+  </div>
+</div>
+
+<div class="container" id="main-container">
+  <div class="nav-bar">
+    <div class="user-badge">
+      <div class="avatar" id="user-avatar">?</div>
+      <div>
+        <div id="user-name" style="font-weight: 800; font-size: 0.9rem;">تحميل...</div>
+        <div id="user-rank" style="font-size: 0.7rem; color: var(--accent);">مبتدئ</div>
+      </div>
+    </div>
+    <div onclick="logout()" style="font-size: 0.8rem; color: var(--danger); cursor: pointer;">خروج</div>
+  </div>
+
+  <div onclick="toggleFullscreen()" class="fullscreen-icon">🔲</div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-free" onclick="setMode('free')">مؤقت حر</div>
+    <div class="tab" id="tab-pomo" onclick="setMode('pomo')">بومودورو</div>
+  </div>
+
+  <div class="timer-wrap">
+    <svg width="220" height="220">
+      <circle class="circle-bg" cx="110" cy="110" r="100"/>
+      <circle class="circle-prog" id="prog-circle" cx="110" cy="110" r="100"/>
+    </svg>
+    <div class="timer-display">
+      <span id="timer-text">25:00</span>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="toggleTimer()">ابدأ التركيز</button>
+  
+  <div style="margin-top: 20px; background: var(--surface); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid var(--surface2);">
+    <span style="color: var(--muted); font-size: 0.8rem;">إجمالي وقتك</span>
+    <div id="total-minutes" style="font-size: 1.5rem; font-weight: 900; color: var(--accent);">0 دقيقة</div>
+  </div>
+</div>
+
+<div class="overlay" id="blocker">
+  <div id="blocker-timer">25:00</div>
+  <p style="margin-top: 20px; color: var(--muted);">العالم ينتظر إبداعك.. لا تستسلم</p>
+  <button onclick="quitSession()" style="margin-top: 40px; background: none; border: 1px solid var(--muted); color: var(--muted); padding: 10px 25px; border-radius: 10px; cursor: pointer;">إنهاء مبكر</button>
+</div>
+
+<script>
+  // --- إعدادات Firebase (ضع بياناتك هنا) ---
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  let timer, remaining, total, isRunning = false;
+  let selectedMins = 25;
+  let currentUser = null;
+
+  // --- نظام الحسابات وجوجل ---
+  function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then(res => {
+      initApp(res.user);
+    }).catch(err => alert("خطأ: " + err.message));
+  }
+
+  function initApp(user) {
+    currentUser = user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-container').classList.add('show');
+    document.getElementById('user-name').textContent = user.displayName;
+    document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}">`;
+    loadStats();
+  }
+
+  function loadStats() {
+    let stats = JSON.parse(localStorage.getItem('stats_' + currentUser.uid) || '{"mins":0}');
+    document.getElementById('total-minutes').textContent = stats.mins + " دقيقة";
+    updateRank(stats.mins);
+  }
+
+  function updateRank(m) {
+    let r = "مبتدئ";
+    if(m > 100) r = "مكافح";
+    if(m > 500) r = "سيد التركيز";
+    document.getElementById('user-rank').textContent = r;
+  }
+
+  // --- نظام المؤقت ---
+  function setMode(m) {
+    selectedMins = (m === 'pomo') ? 25 : 10; // مثال
+    resetTimer();
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + m).classList.add('active');
+  }
+
+  function resetTimer() {
+    remaining = selectedMins * 60;
+    total = remaining;
+    updateUI();
+  }
+
+  function toggleTimer() {
+    if (isRunning) return;
+    isRunning = true;
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    document.getElementById('blocker').classList.add('show');
+    document.getElementById('start-btn').classList.add('running');
+    
+    timer = setInterval(() => {
+      remaining--;
+      updateUI();
+      if (remaining <= 0) {
+        clearInterval(timer);
+        finishSession();
+      }
+    }, 1000);
+  }
+
+  function updateUI() {
+    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const s = (remaining % 60).toString().padStart(2, '0');
+    const text = `${m}:${s}`;
+    document.getElementById('timer-text').textContent = text;
+    document.getElementById('blocker-timer').textContent = text;
+    document.getElementById('prog-circle').style.strokeDashoffset = 628 * (1 - (remaining / total));
+  }
+
+  function finishSession() {
+    let stats = JSON.parse(localStorage.getItem('stats_' + currentUser.uid) || '{"mins":0}');
+    stats.mins += selectedMins;
+    localStorage.setItem('stats_' + currentUser.uid, JSON.stringify(stats));
+    alert("عمل رائع يا " + currentUser.displayName);
+    location.reload();
+  }
+
+  function quitSession() {
+    if(confirm("هل تريد الانسحاب؟")) location.reload();
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+
+  function logout() {
+    firebase.auth().signOut().then(() => location.reload());
+  }
+
+  // التحقق من الجلسة
+  firebase.auth().onAuthStateChanged(user => { if(user) initApp(user); });
+  resetTimer();
+</script>
+</body>
+</html>

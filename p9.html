@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحدّي التركيز</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #1a2620;
+    --accent: #00e5a0;
+    --accent2: #00b87a;
+    --text: #e8f5ee;
+    --muted: #5a7a68;
+    --danger: #ff4d6d;
+    --warn: #ffa94d;
+    --glow: rgba(0,229,160,0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Fullscreen Button Style */
+  .fullscreen-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    color: var(--muted);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 10;
+    transition: 0.3s;
+  }
+  .fullscreen-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,229,160,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  .header h1 span { color: var(--accent); }
+  .header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .tab {
+    padding: 10px;
+    text-align: center;
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--muted);
+    transition: all 0.25s;
+    user-select: none;
+  }
+  .tab.active {
+    background: var(--accent);
+    color: #0a0f0d;
+    box-shadow: 0 0 16px var(--glow);
+  }
+
+  .durations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s ease 0.15s both;
+  }
+  .dur-btn {
+    padding: 8px 16px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1.5px solid transparent;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    transition: all 0.2s;
+  }
+  .dur-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .dur-btn.active {
+    border-color: var(--accent);
+    background: rgba(0,229,160,0.1);
+    color: var(--accent);
+  }
+
+  .custom-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+  .custom-row input {
+    flex: 1;
+    padding: 9px 14px;
+    background: var(--surface);
+    border: 1.5px solid var(--surface2);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: 'Tajawal', sans-serif;
+    outline: none;
+    text-align: right;
+  }
+  .custom-row input:focus { border-color: var(--accent); }
+  .custom-row button {
+    padding: 9px 18px;
+    background: var(--surface2);
+    border: 1.5px solid var(--surface2);
+    border-radius: 10px;
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.88rem;
+  }
+
+  .break-settings {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 20px;
+    display: none;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--surface2);
+  }
+  .break-settings.show { display: flex; }
+  .break-settings label { font-size: 0.8rem; color: var(--muted); }
+  .break-settings input {
+    width: 50px;
+    background: var(--surface2);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  .timer-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease 0.25s both;
+  }
+  .timer-circle {
+    position: relative;
+    width: 220px;
+    height: 220px;
+  }
+  .timer-circle svg {
+    position: absolute;
+    top: 0; left: 0;
+    transform: rotate(-90deg);
+  }
+  .timer-circle svg circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+  .circle-bg { stroke: var(--surface2); }
+  .circle-prog {
+    stroke: var(--accent);
+    stroke-dasharray: 628;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .timer-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .timer-display { font-size: 3rem; font-weight: 900; }
+  .timer-phase { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+
+  .pomo-info { display: none; text-align: center; margin-bottom: 10px; color: var(--muted); }
+  .pomo-info.show { display: block; }
+  .pomo-dots { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+  .pomo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); }
+  .pomo-dot.done { background: var(--accent); }
+  .pomo-dot.current { background: var(--warn); }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    border: none;
+    border-radius: 16px;
+    color: #0a0f0d;
+    font-size: 1.15rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(0,229,160,0.25);
+    margin-bottom: 20px;
+  }
+  .start-btn.running { background: var(--danger); }
+
+  .stats-card, .task-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    border: 1px solid var(--surface2);
+  }
+  .stats-value { font-size: 1.15rem; font-weight: 800; color: var(--accent); }
+  
+  .task-card input {
+    width: 100%;
+    background: var(--surface2);
+    border: none;
+    border-radius: 10px;
+    padding: 9px 12px;
+    color: var(--text);
+    text-align: right;
+    outline: none;
+  }
+
+  .blocker, .break-overlay, .done-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  .blocker.show, .break-overlay.show, .done-overlay.show { display: flex; }
+
+  .blocker-quit, .done-btn, .break-skip-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 800;
+    font-family: 'Tajawal';
+  }
+  .done-btn, .break-skip-btn { background: var(--accent); border: none; color: #0a0f0d; }
+  .blocker-quit { background: transparent; border: 1.5px solid var(--surface2); color: var(--muted); }
+
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+</style>
+</head>
+<body>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()" title="شاشة كاملة">
+  <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+</button>
+
+<div class="container">
+  <div class="header">
+    <h1>🎯 تحدّي <span>التركيز</span></h1>
+    <p>ضع جوالك على الطاولة وابدأ</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab" id="tab-pomo" onclick="setMode('pomo')">🍅 بومودورو</div>
+    <div class="tab active" id="tab-free" onclick="setMode('free')">⏱️ مؤقت حر</div>
+  </div>
+
+  <div class="durations" id="dur-row">
+    <button class="dur-btn" onclick="setDur(5)">5 دقائق</button>
+    <button class="dur-btn" onclick="setDur(10)">10 دقائق</button>
+    <button class="dur-btn" onclick="setDur(25)">25 دقيقة</button>
+    <button class="dur-btn active" onclick="setDur(1)">1 دقيقة</button>
+    <button class="dur-btn" onclick="setDur(45)">45 دقيقة</button>
+  </div>
+
+  <div class="custom-row">
+    <button onclick="applyCustom()">تطبيق</button>
+    <input type="number" id="custom-input" placeholder="وقت مخصص">
+  </div>
+
+  <div class="break-settings" id="break-settings">
+    <label>☕ استراحة (د):</label>
+    <input type="number" id="pomo-break-input" value="5">
+    <label>☕ طويلة (د):</label>
+    <input type="number" id="pomo-long-break-input" value="15">
+  </div>
+
+  <div class="pomo-info" id="pomo-info">
+    <div id="pomo-phase-label">جلسة تركيز 1 / 4</div>
+    <div class="pomo-dots" id="pomo-dots"></div>
+  </div>
+
+  <div class="timer-wrap">
+    <div class="timer-circle">
+      <svg width="220" height="220" viewBox="0 0 220 220">
+        <circle class="circle-bg" cx="110" cy="110" r="100"/>
+        <circle class="circle-prog" id="prog-circle" cx="110" cy="110" r="100"/>
+      </svg>
+      <div class="timer-inner">
+        <div class="timer-display" id="timer-display">01:00</div>
+        <div class="timer-phase" id="timer-phase">جاهز؟</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="toggleTimer()">ابدأ التحدي</button>
+
+  <div class="task-card">
+    <input type="text" id="task-input" placeholder="ماذا ستفعل الآن؟">
+  </div>
+
+  <div class="stats-card">
+    <div class="stats-value" id="total-time">0 د</div>
+    <p style="font-size: 0.8rem; color: var(--muted)">إجمالي وقت التركيز</p>
+  </div>
+</div>
+
+<div class="blocker" id="blocker">
+  <div style="font-size:4rem">🔒</div>
+  <h2 style="margin:10px 0">وضع التركيز</h2>
+  <div id="blocker-timer" style="font-size:3rem; color:var(--accent); font-weight:900">00:00</div>
+  <button class="blocker-quit" onclick="quitSession()">إنهاء الجلسة</button>
+</div>
+
+<div class="break-overlay" id="break-overlay">
+  <div style="font-size:3.5rem">☕</div>
+  <h2>وقت الاستراحة</h2>
+  <div id="break-timer" style="font-size:2.5rem; color:var(--warn)">05:00</div>
+  <button class="break-skip-btn" onclick="skipBreak()">تخطي</button>
+</div>
+
+<div class="done-overlay" id="done-overlay">
+  <div style="font-size:4rem">🎉</div>
+  <h2 id="done-title">بطل!</h2>
+  <p id="done-sub">انتهيت من الجلسة</p>
+  <button class="done-btn" onclick="closeDone()">العودة</button>
+</div>
+
+<script>
+  let mode = 'free';
+  let selectedMinutes = 1;
+  let timerInterval = null;
+  let breakInterval = null;
+  let remainingSeconds = 60;
+  let totalSeconds = 60;
+  let running = false;
+  let totalStudyMinutes = parseInt(localStorage.getItem('totalStudyMinutes') || '0');
+  let pomoSession = 0;
+  const POMO_COUNT = 4;
+
+  // Fullscreen Logic
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        alert(`خطأ في تفعيل الشاشة الكاملة: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('tab-pomo').classList.toggle('active', m === 'pomo');
+    document.getElementById('tab-free').classList.toggle('active', m === 'free');
+    document.getElementById('pomo-info').classList.toggle('show', m === 'pomo');
+    document.getElementById('break-settings').classList.toggle('show', m === 'pomo');
+    if (m === 'pomo') { pomoSession = 0; renderPomoDots(); }
+    resetTimer();
+  }
+
+  function setDur(min) {
+    selectedMinutes = min;
+    document.querySelectorAll('.dur-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.includes(min + ' '));
+    });
+    resetTimer();
+  }
+
+  function applyCustom() {
+    const v = parseInt(document.getElementById('custom-input').value);
+    if (v > 0) { selectedMinutes = v; resetTimer(); }
+  }
+
+  function resetTimer() {
+    clearInterval(timerInterval);
+    clearInterval(breakInterval);
+    running = false;
+    remainingSeconds = selectedMinutes * 60;
+    totalSeconds = remainingSeconds;
+    updateDisplay();
+    updateProgress(1);
+    document.getElementById('start-btn').textContent = 'ابدأ التحدي';
+    document.getElementById('start-btn').classList.remove('running');
+  }
+
+  function toggleTimer() {
+    if (running) { quitSession(); return; }
+    // دخول تلقائي للشاشة الكاملة عند البدء (اختياري)
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    startTimer();
+  }
+
+  function startTimer() {
+    running = true;
+    document.getElementById('start-btn').textContent = 'إيقاف';
+    document.getElementById('start-btn').classList.add('running');
+    document.getElementById('blocker').classList.add('show');
+    timerInterval = setInterval(() => {
+      remainingSeconds--;
+      updateDisplay();
+      updateProgress(remainingSeconds / totalSeconds);
+      if (remainingSeconds <= 0) { clearInterval(timerInterval); finishWork(); }
+    }, 1000);
+  }
+
+  function finishWork() {
+    running = false;
+    document.getElementById('blocker').classList.remove('show');
+    recordSession(selectedMinutes);
+    if (mode === 'pomo') {
+      pomoSession++;
+      renderPomoDots();
+      let bTime = pomoSession >= POMO_COUNT ? document.getElementById('pomo-long-break-input').value : document.getElementById('pomo-break-input').value;
+      startBreak(parseInt(bTime));
+    } else { showDone(); }
+  }
+
+  function startBreak(mins) {
+    document.getElementById('break-overlay').classList.add('show');
+    let bSecs = mins * 60;
+    document.getElementById('break-timer').textContent = formatTime(bSecs);
+    breakInterval = setInterval(() => {
+      bSecs--;
+      document.getElementById('break-timer').textContent = formatTime(bSecs);
+      if (bSecs <= 0) skipBreak();
+    }, 1000);
+  }
+
+  function skipBreak() {
+    clearInterval(breakInterval);
+    document.getElementById('break-overlay').classList.remove('show');
+    if (pomoSession >= POMO_COUNT) showDone("تمت دورة بومودورو!");
+    else { resetTimer(); startTimer(); }
+  }
+
+  function quitSession() {
+    clearInterval(timerInterval);
+    document.getElementById('blocker').classList.remove('show');
+    resetTimer();
+  }
+
+  function showDone(msg = "أتممت الجلسة بنجاح") {
+    document.getElementById('done-overlay').classList.add('show');
+    document.getElementById('done-sub').textContent = msg;
+  }
+
+  function closeDone() {
+    document.getElementById('done-overlay').classList.remove('show');
+    setMode(mode);
+  }
+
+  function updateDisplay() {
+    const s = formatTime(remainingSeconds);
+    document.getElementById('timer-display').textContent = s;
+    document.getElementById('blocker-timer').textContent = s;
+  }
+
+  function updateProgress(r) { document.getElementById('prog-circle').style.strokeDashoffset = 628 * (1 - r); }
+
+  function formatTime(s) {
+    return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+  }
+
+  function recordSession(m) {
+    totalStudyMinutes += m;
+    localStorage.setItem('totalStudyMinutes', totalStudyMinutes);
+    document.getElementById('total-time').textContent = totalStudyMinutes + ' د';
+  }
+
+  function renderPomoDots() {
+    const dots = document.getElementById('pomo-dots');
+    dots.innerHTML = '';
+    for (let i = 0; i < POMO_COUNT; i++) {
+      const d = document.createElement('div');
+      d.className = 'pomo-dot' + (i < pomoSession ? ' done' : '') + (i === pomoSession ? ' current' : '');
+      dots.appendChild(d);
+    }
+    document.getElementById('pomo-phase-label').textContent = `جلسة تركيز ${pomoSession + 1} / ${POMO_COUNT}`;
+  }
+
+  document.getElementById('total-time').textContent = totalStudyMinutes + ' د';
+</script>
+</body>
+</html>
