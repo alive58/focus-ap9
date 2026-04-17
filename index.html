@@ -1,186 +1,210 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رين - تحدّي التركيز</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <style>
-        :root {
-            --bg: #0a0f0d;
-            --surface: #111a15;
-            --accent: #00e5a0;
-            --text: #e8f5ee;
-            --muted: #5a7a68;
-            --danger: #ff4d6d;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        /* شاشة الدخول */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--surface); padding: 40px; border-radius: 30px; text-align: center; border: 1px solid #1a2620; width: 90%; max-width: 400px; }
-        .google-btn { width: 100%; padding: 15px; margin-top: 25px; background: white; color: #333; border-radius: 15px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; cursor: pointer; font-size: 1rem; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رين - تحدّي التركيز</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 
-        /* الواجهة الرئيسية */
-        .app-container { width: 100%; max-width: 450px; display: none; }
-        .app-container.active { display: block; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px 20px; border-radius: 20px; margin-bottom: 25px; }
-        .profile { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--accent); }
-        
-        .timer-section { background: var(--surface); padding: 40px 20px; border-radius: 30px; text-align: center; border: 1px solid #1a2620; position: relative; }
-        .circle-box { position: relative; width: 250px; height: 250px; margin: 0 auto 30px; }
-        svg { transform: rotate(-90deg); width: 250px; height: 250px; }
-        circle { fill: none; stroke-width: 10; stroke-linecap: round; }
-        .bg-circle { stroke: #1a2620; }
-        .prog-circle { stroke: var(--accent); stroke-dasharray: 754; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
-        .time-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 4rem; font-weight: 900; letter-spacing: -2px; }
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
 
-        .btn-main { width: 100%; padding: 20px; background: var(--accent); color: #000; border: none; border-radius: 20px; font-size: 1.3rem; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        .btn-main:active { transform: scale(0.98); }
-        .btn-quit { margin-top: 15px; background: none; border: none; color: var(--muted); cursor: pointer; font-weight: 700; }
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #1a2620;
+    --accent: #00e5a0;
+    --text: #e8f5ee;
+    --muted: #5a7a68;
+    --danger: #ff4d6d;
+    --warn: #ffa94d;
+    --glow: rgba(0,229,160,0.18);
+  }
 
-        .stats-card { margin-top: 20px; background: var(--surface); padding: 20px; border-radius: 20px; display: flex; justify-content: space-around; }
-        .stat-val { display: block; font-size: 1.5rem; font-weight: 800; color: var(--accent); }
-        .stat-label { font-size: 0.8rem; color: var(--muted); }
-    </style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; overflow-x: hidden; }
+
+  /* شاشة الدخول */
+  #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+  .auth-card { background: var(--surface); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--surface2); }
+  .google-btn { width: 100%; padding: 14px; margin-top: 20px; background: white; color: #444; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; cursor: pointer; }
+
+  .container { width: 100%; max-width: 420px; display: none; }
+  .container.show { display: block; }
+
+  .header { text-align: center; margin-bottom: 25px; }
+  .header h1 span { color: var(--accent); }
+
+  /* شريط المستخدم */
+  .user-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 10px 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--surface2); }
+  .user-info { display: flex; align-items: center; gap: 10px; }
+  .user-info img { width: 35px; height: 35px; border-radius: 50%; border: 1.5px solid var(--accent); }
+
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 20px; }
+  .tab { padding: 10px; text-align: center; border-radius: 11px; cursor: pointer; color: var(--muted); font-weight: 600; }
+  .tab.active { background: var(--accent); color: #0a0f0d; box-shadow: 0 0 15px var(--glow); }
+
+  .durations { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; justify-content: center; }
+  .dur-btn { padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Tajawal'; }
+  .dur-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.1); }
+
+  .timer-wrap { position: relative; width: 220px; height: 220px; margin: 20px auto; }
+  circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+  .circle-bg { stroke: var(--surface2); }
+  .circle-prog { stroke: var(--accent); stroke-dasharray: 628; stroke-dashoffset: 0; transition: 1s linear; transform: rotate(-90deg); transform-origin: center; }
+  .timer-display { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 3rem; font-weight: 900; }
+
+  .start-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 16px; color: #0a0f0d; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 20px rgba(0,229,160,0.2); }
+  .start-btn.running { background: var(--danger); }
+
+  /* الشاشات المنبثقة */
+  .overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .overlay.show { display: flex; }
+</style>
 </head>
 <body>
 
-    <div id="auth-screen">
-        <div class="auth-card">
-            <h1 style="font-size: 2.5rem; margin-bottom: 10px;">رين 🎯</h1>
-            <p style="color: var(--muted);">أهلاً يا علي، جاهز لتركيز عميق؟</p>
-            <button class="google-btn" onclick="login()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20">
-                دخول بواسطة جوجل
-            </button>
-        </div>
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>رين 🎯</h1>
+    <p style="color: var(--muted); margin-top: 10px;">سجل دخولك لحفظ تقدمك يا علي</p>
+    <button class="google-btn" onclick="login()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18">
+      الدخول بواسطة جوجل
+    </button>
+  </div>
+</div>
+
+<div class="container" id="main-app">
+  <div class="user-bar">
+    <div class="user-info">
+      <img id="u-img" src="">
+      <div>
+        <div id="u-name" style="font-size: 0.85rem; font-weight: 800;">تحميل...</div>
+        <div id="u-rank" style="font-size: 0.7rem; color: var(--accent);">مبتدئ</div>
+      </div>
     </div>
+    <div onclick="logout()" style="color: var(--danger); font-size: 0.8rem; cursor: pointer;">خروج</div>
+  </div>
 
-    <div class="app-container" id="app">
-        <div class="header">
-            <div class="profile">
-                <img id="user-img" src="" class="avatar">
-                <div>
-                    <div id="user-name" style="font-weight: 800;">تحميل...</div>
-                    <div id="user-rank" style="font-size: 0.75rem; color: var(--accent);">مبتدئ</div>
-                </div>
-            </div>
-            <button onclick="logout()" style="background:none; border:none; color:var(--danger); font-weight:700; cursor:pointer;">خروج</button>
-        </div>
+  <div class="header">
+    <h1>🎯 تحدّي <span>التركيز</span></h1>
+  </div>
 
-        <div class="timer-section">
-            <div class="circle-box">
-                <svg>
-                    <circle class="bg-circle" cx="125" cy="125" r="120"></circle>
-                    <circle id="progress" class="prog-circle" cx="125" cy="125" r="120"></circle>
-                </svg>
-                <div class="time-display" id="display">25:00</div>
-            </div>
-            <button class="btn-main" id="start-btn" onclick="toggleTimer()">ابدأ الجلسة</button>
-            <button class="btn-quit" id="quit-btn" style="display:none;" onclick="reset()">إنهاء الجلسة</button>
-        </div>
+  <div class="tabs">
+    <div class="tab active" id="t-pomo" onclick="setMode('pomo')">🍅 بومودورو</div>
+    <div class="tab" id="t-free" onclick="setMode('free')">⏱️ حر</div>
+  </div>
 
-        <div class="stats-card">
-            <div style="text-align:center;">
-                <span class="stat-label">مجموع الدقائق</span>
-                <span class="stat-val" id="total-mins">0</span>
-            </div>
-            <div style="text-align:center;">
-                <span class="stat-label">جلسات اليوم</span>
-                <span class="stat-val" id="sessions">0</span>
-            </div>
-        </div>
-    </div>
+  <div class="durations" id="dur-box">
+    <button class="dur-btn" onclick="setDur(5)">5 د</button>
+    <button class="dur-btn" onclick="setDur(10)">10 د</button>
+    <button class="dur-btn active" onclick="setDur(25)">25 د</button>
+    <button class="dur-btn" onclick="setDur(45)">45 د</button>
+  </div>
 
-    <script>
-        // إعداداتك الخاصة التي جلبناها من Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyBf0jgQOn0tkmCUd5ZVy5qkEaZG6YfRB7U",
-            authDomain: "p10-t-2940b.firebaseapp.com",
-            projectId: "p10-t-2940b",
-            storageBucket: "p10-t-2940b.firebasestorage.app",
-            messagingSenderId: "123981816702",
-            appId: "1:123981816702:web:e112d6855ad8b93169092f"
-        };
-        firebase.initializeApp(firebaseConfig);
+  <div class="timer-wrap">
+    <svg width="220" height="220">
+      <circle class="circle-bg" cx="110" cy="110" r="100"/>
+      <circle class="circle-prog" id="prog-circle" cx="110" cy="110" r="100"/>
+    </svg>
+    <div class="timer-display" id="timer-txt">25:00</div>
+  </div>
 
-        let timer, seconds = 1500, isRunning = false;
-        const totalSecs = 1500;
+  <button class="start-btn" id="s-btn" onclick="toggleTimer()">ابدأ التحدي</button>
 
-        function login() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithPopup(provider).then(res => {
-                showApp(res.user);
-            });
-        }
+  <div style="margin-top: 20px; background: var(--surface); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid var(--surface2);">
+    <div id="total-txt" style="font-size: 1.2rem; font-weight: 900; color: var(--accent);">0 د</div>
+    <p style="font-size: 0.75rem; color: var(--muted);">إجمالي وقت التركيز المحفوظ</p>
+  </div>
+</div>
 
-        function showApp(user) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app').classList.add('active');
-            document.getElementById('user-name').textContent = user.displayName;
-            document.getElementById('user-img').src = user.photoURL;
-            loadStats(user.uid);
-        }
+<div class="overlay" id="blocker">
+  <h2 id="b-timer" style="font-size: 4rem; color: var(--accent);">25:00</h2>
+  <p style="color: var(--muted); margin-top: 15px;">وضع التركيز نشط.. لا تخرج من الصفحة</p>
+  <button onclick="quit()" style="margin-top: 30px; background: none; border: 1px solid var(--muted); color: var(--muted); padding: 10px 20px; border-radius: 10px; cursor: pointer;">إنهاء مبكر</button>
+</div>
 
-        function toggleTimer() {
-            if(isRunning) return;
-            isRunning = true;
-            document.getElementById('start-btn').style.display = 'none';
-            document.getElementById('quit-btn').style.display = 'block';
-            
-            timer = setInterval(() => {
-                seconds--;
-                updateUI();
-                if(seconds <= 0) {
-                    clearInterval(timer);
-                    alert("انتهى الوقت! بطل يا علي.");
-                    saveTime();
-                    reset();
-                }
-            }, 1000);
-        }
+<script>
+  // إعدادات Firebase الخاصة بك يا علي
+  const firebaseConfig = {
+    apiKey: "AIzaSyBf0jgQOn0tkmCUd5ZVy5qkEaZG6YfRB7U",
+    authDomain: "p10-t-2940b.firebaseapp.com",
+    projectId: "p10-t-2940b",
+    storageBucket: "p10-t-2940b.firebasestorage.app",
+    messagingSenderId: "123981816702",
+    appId: "1:123981816702:web:e112d6855ad8b93169092f"
+  };
+  firebase.initializeApp(firebaseConfig);
 
-        function updateUI() {
-            let m = Math.floor(seconds / 60);
-            let s = seconds % 60;
-            document.getElementById('display').textContent = `${m}:${s < 10 ? '0'+s : s}`;
-            let offset = 754 * (1 - (seconds / totalSecs));
-            document.getElementById('progress').style.strokeDashoffset = offset;
-        }
+  let timer, remaining = 1500, total = 1500, isRunning = false;
+  let currentUser = null;
 
-        function reset() {
-            clearInterval(timer);
-            seconds = 1500;
-            isRunning = false;
-            updateUI();
-            document.getElementById('start-btn').style.display = 'block';
-            document.getElementById('quit-btn').style.display = 'none';
-        }
+  function login() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).then(res => init(res.user));
+  }
 
-        function saveTime() {
-            const user = firebase.auth().currentUser;
-            let current = JSON.parse(localStorage.getItem(user.uid) || '{"mins":0, "sessions":0}');
-            current.mins += 25;
-            current.sessions += 1;
-            localStorage.setItem(user.uid, JSON.stringify(current));
-            loadStats(user.uid);
-        }
+  function init(user) {
+    currentUser = user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('main-app').classList.add('show');
+    document.getElementById('u-name').textContent = user.displayName;
+    document.getElementById('u-img').src = user.photoURL;
+    loadStats();
+  }
 
-        function loadStats(uid) {
-            let data = JSON.parse(localStorage.getItem(uid) || '{"mins":0, "sessions":0}');
-            document.getElementById('total-mins').textContent = data.mins;
-            document.getElementById('sessions').textContent = data.sessions;
-            if(data.mins > 100) document.getElementById('user-rank').textContent = "مكافح 🔥";
-        }
+  function setDur(m) {
+    if(isRunning) return;
+    remaining = m * 60;
+    total = remaining;
+    updateUI();
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(m)));
+  }
 
-        function logout() { firebase.auth().signOut().then(() => location.reload()); }
-        firebase.auth().onAuthStateChanged(user => { if(user) showApp(user); });
-    </script>
+  function toggleTimer() {
+    if(isRunning) return;
+    isRunning = true;
+    document.getElementById('blocker').classList.add('show');
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+    
+    timer = setInterval(() => {
+      remaining--;
+      updateUI();
+      if(remaining <= 0) {
+        clearInterval(timer);
+        finish();
+      }
+    }, 1000);
+  }
+
+  function updateUI() {
+    const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+    const s = (remaining % 60).toString().padStart(2, '0');
+    const txt = `${m}:${s}`;
+    document.getElementById('timer-txt').textContent = txt;
+    document.getElementById('b-timer').textContent = txt;
+    document.getElementById('prog-circle').style.strokeDashoffset = 628 * (1 - (remaining / total));
+  }
+
+  function finish() {
+    let stats = JSON.parse(localStorage.getItem('study_' + currentUser.uid) || '{"mins":0}');
+    stats.mins += Math.floor(total / 60);
+    localStorage.setItem('study_' + currentUser.uid, JSON.stringify(stats));
+    alert("عمل رائع يا " + currentUser.displayName);
+    location.reload();
+  }
+
+  function loadStats() {
+    let stats = JSON.parse(localStorage.getItem('study_' + currentUser.uid) || '{"mins":0}');
+    document.getElementById('total-txt').textContent = stats.mins + " د";
+    if(stats.mins > 100) document.getElementById('u-rank').textContent = "مكافح 🔥";
+  }
+
+  function quit() { if(confirm("هل ستنسحب؟")) location.reload(); }
+  function logout() { firebase.auth().signOut().then(() => location.reload()); }
+  firebase.auth().onAuthStateChanged(user => { if(user) init(user); });
+</script>
 </body>
 </html>
