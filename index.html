@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>رين - تحدّي التركيز</title>
+<title>تحدّي التركيز</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
 
@@ -17,58 +16,57 @@
     --accent: #00e5a0;
     --text: #e8f5ee;
     --muted: #5a7a68;
-    --danger: #ff4d6d;
-    --warn: #ffa94d;
-    --glow: rgba(0,229,160,0.18);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; overflow-x: hidden; }
+  body { font-family: 'Tajawal', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
 
   /* شاشة الدخول */
   #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-  .auth-card { background: var(--surface); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; text-align: center; border: 1px solid var(--surface2); }
-  .google-btn { width: 100%; padding: 14px; margin-top: 20px; background: white; color: #444; border-radius: 12px; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 800; cursor: pointer; }
+  .auth-card { background: var(--surface); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid var(--surface2); width: 90%; max-width: 400px; }
+  .google-btn { width: 100%; padding: 12px; margin-top: 20px; background: white; color: #333; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
 
   .container { width: 100%; max-width: 420px; display: none; }
   .container.show { display: block; }
 
-  .header { text-align: center; margin-bottom: 25px; }
+  /* الهيدر وشريط المستخدم */
+  .user-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 10px; background: var(--surface); border-radius: 12px; }
+  .user-info { display: flex; align-items: center; gap: 10px; }
+  .user-info img { width: 35px; height: 35px; border-radius: 50%; border: 1px solid var(--accent); }
+
+  .header { text-align: center; margin-bottom: 20px; }
+  .header h1 { font-size: 1.8rem; font-weight: 900; }
   .header h1 span { color: var(--accent); }
 
-  /* شريط المستخدم */
-  .user-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface); padding: 10px 15px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--surface2); }
-  .user-info { display: flex; align-items: center; gap: 10px; }
-  .user-info img { width: 35px; height: 35px; border-radius: 50%; border: 1.5px solid var(--accent); }
+  /* الأزرار والتبويبات (نفس التصميم في الصورة) */
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .tab { padding: 8px 20px; background: var(--surface); border-radius: 10px; color: var(--muted); cursor: pointer; font-weight: 700; transition: 0.3s; }
+  .tab.active { background: var(--accent); color: #0a0f0d; }
 
-  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 20px; }
-  .tab { padding: 10px; text-align: center; border-radius: 11px; cursor: pointer; color: var(--muted); font-weight: 600; }
-  .tab.active { background: var(--accent); color: #0a0f0d; box-shadow: 0 0 15px var(--glow); }
+  .durations { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .dur-btn { padding: 6px 12px; background: var(--surface2); border: 1px solid var(--surface2); color: var(--muted); border-radius: 8px; cursor: pointer; font-family: 'Tajawal'; }
+  .dur-btn.active { border-color: var(--accent); color: var(--accent); }
 
-  .durations { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; justify-content: center; }
-  .dur-btn { padding: 8px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Tajawal'; }
-  .dur-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.1); }
+  /* المؤقت الدائري */
+  .timer-wrap { position: relative; width: 220px; height: 220px; margin: 30px auto; }
+  svg { transform: rotate(-90deg); }
+  .circle-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+  .circle-prog { fill: none; stroke: var(--accent); stroke-width: 6; stroke-dasharray: 628; stroke-dashoffset: 0; transition: 1s linear; stroke-linecap: round; }
+  .timer-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900; }
 
-  .timer-wrap { position: relative; width: 220px; height: 220px; margin: 20px auto; }
-  circle { fill: none; stroke-width: 6; stroke-linecap: round; }
-  .circle-bg { stroke: var(--surface2); }
-  .circle-prog { stroke: var(--accent); stroke-dasharray: 628; stroke-dashoffset: 0; transition: 1s linear; transform: rotate(-90deg); transform-origin: center; }
-  .timer-display { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 3rem; font-weight: 900; }
+  .start-btn { width: 100%; padding: 18px; background: var(--accent); color: #0a0f0d; border: none; border-radius: 15px; font-size: 1.2rem; font-weight: 900; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,229,160,0.2); }
 
-  .start-btn { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: 16px; color: #0a0f0d; font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 20px rgba(0,229,160,0.2); }
-  .start-btn.running { background: var(--danger); }
-
-  /* الشاشات المنبثقة */
-  .overlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 500; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-  .overlay.show { display: flex; }
+  /* السجل */
+  .stats-box { background: var(--surface); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid var(--surface2); }
+  .stats-val { font-size: 1.5rem; font-weight: 900; color: var(--accent); }
 </style>
 </head>
 <body>
 
 <div id="auth-screen">
   <div class="auth-card">
-    <h1>رين 🎯</h1>
-    <p style="color: var(--muted); margin-top: 10px;">سجل دخولك لحفظ تقدمك يا علي</p>
+    <h1 style="color: var(--accent);">رين 🎯</h1>
+    <p style="margin-top: 10px;">سجل دخولك لحفظ دقائق تركيزك</p>
     <button class="google-btn" onclick="login()">
       <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18">
       الدخول بواسطة جوجل
@@ -76,58 +74,50 @@
   </div>
 </div>
 
-<div class="container" id="main-app">
+<div class="container" id="app">
   <div class="user-bar">
     <div class="user-info">
       <img id="u-img" src="">
-      <div>
-        <div id="u-name" style="font-size: 0.85rem; font-weight: 800;">تحميل...</div>
-        <div id="u-rank" style="font-size: 0.7rem; color: var(--accent);">مبتدئ</div>
-      </div>
+      <span id="u-name" style="font-weight: 700; font-size: 0.9rem;">تحميل...</span>
     </div>
-    <div onclick="logout()" style="color: var(--danger); font-size: 0.8rem; cursor: pointer;">خروج</div>
+    <span onclick="logout()" style="color: var(--muted); cursor: pointer; font-size: 0.8rem;">تسجيل خروج</span>
   </div>
 
   <div class="header">
-    <h1>🎯 تحدّي <span>التركيز</span></h1>
+    <h1>تحدّي <span>التركيز</span> 🎯</h1>
+    <p style="font-size: 0.8rem; color: var(--muted); margin-top: 5px;">ضع جوالك على الطاولة وابدأ</p>
   </div>
 
   <div class="tabs">
-    <div class="tab active" id="t-pomo" onclick="setMode('pomo')">🍅 بومودورو</div>
-    <div class="tab" id="t-free" onclick="setMode('free')">⏱️ حر</div>
+    <div class="tab active" id="tab-pomo">بومودورو 🍅</div>
+    <div class="tab">مؤقت حر ⏱️</div>
   </div>
 
-  <div class="durations" id="dur-box">
-    <button class="dur-btn" onclick="setDur(5)">5 د</button>
-    <button class="dur-btn" onclick="setDur(10)">10 د</button>
-    <button class="dur-btn active" onclick="setDur(25)">25 د</button>
-    <button class="dur-btn" onclick="setDur(45)">45 د</button>
+  <div class="durations">
+    <button class="dur-btn" onclick="setDur(5)">5 دقائق</button>
+    <button class="dur-btn" onclick="setDur(10)">10 دقائق</button>
+    <button class="dur-btn active" id="d-25" onclick="setDur(25)">25 دقيقة</button>
+    <button class="dur-btn" onclick="setDur(45)">45 دقيقة</button>
   </div>
 
   <div class="timer-wrap">
     <svg width="220" height="220">
       <circle class="circle-bg" cx="110" cy="110" r="100"/>
-      <circle class="circle-prog" id="prog-circle" cx="110" cy="110" r="100"/>
+      <circle class="circle-prog" id="prog" cx="110" cy="110" r="100"/>
     </svg>
-    <div class="timer-display" id="timer-txt">25:00</div>
+    <div class="timer-display" id="display">25:00</div>
   </div>
 
-  <button class="start-btn" id="s-btn" onclick="toggleTimer()">ابدأ التحدي</button>
+  <button class="start-btn" id="s-btn" onclick="start()">ابدأ التحدي</button>
 
-  <div style="margin-top: 20px; background: var(--surface); padding: 15px; border-radius: 15px; text-align: center; border: 1px solid var(--surface2);">
-    <div id="total-txt" style="font-size: 1.2rem; font-weight: 900; color: var(--accent);">0 د</div>
-    <p style="font-size: 0.75rem; color: var(--muted);">إجمالي وقت التركيز المحفوظ</p>
+  <div class="stats-box">
+    <div class="stats-val" id="total-mins">0 د</div>
+    <p style="font-size: 0.8rem; color: var(--muted);">سجل الدراسة التراكمي</p>
   </div>
-</div>
-
-<div class="overlay" id="blocker">
-  <h2 id="b-timer" style="font-size: 4rem; color: var(--accent);">25:00</h2>
-  <p style="color: var(--muted); margin-top: 15px;">وضع التركيز نشط.. لا تخرج من الصفحة</p>
-  <button onclick="quit()" style="margin-top: 30px; background: none; border: 1px solid var(--muted); color: var(--muted); padding: 10px 20px; border-radius: 10px; cursor: pointer;">إنهاء مبكر</button>
 </div>
 
 <script>
-  // إعدادات Firebase الخاصة بك يا علي
+  // بيانات Firebase الخاصة بك
   const firebaseConfig = {
     apiKey: "AIzaSyBf0jgQOn0tkmCUd5ZVy5qkEaZG6YfRB7U",
     authDomain: "p10-t-2940b.firebaseapp.com",
@@ -138,43 +128,42 @@
   };
   firebase.initializeApp(firebaseConfig);
 
-  let timer, remaining = 1500, total = 1500, isRunning = false;
-  let currentUser = null;
+  let timer, remaining = 1500, total = 1500, running = false;
+  let user = null;
 
   function login() {
     const provider = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(provider).then(res => init(res.user));
+    firebase.auth().signInWithPopup(provider).then(res => setup(res.user));
   }
 
-  function init(user) {
-    currentUser = user;
+  function setup(u) {
+    user = u;
     document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('main-app').classList.add('show');
-    document.getElementById('u-name').textContent = user.displayName;
-    document.getElementById('u-img').src = user.photoURL;
+    document.getElementById('app').classList.add('show');
+    document.getElementById('u-name').textContent = u.displayName;
+    document.getElementById('u-img').src = u.photoURL;
     loadStats();
   }
 
   function setDur(m) {
-    if(isRunning) return;
-    remaining = m * 60;
-    total = remaining;
+    if(running) return;
+    remaining = m * 60; total = remaining;
     updateUI();
     document.querySelectorAll('.dur-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(m)));
   }
 
-  function toggleTimer() {
-    if(isRunning) return;
-    isRunning = true;
-    document.getElementById('blocker').classList.add('show');
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  function start() {
+    if(running) { location.reload(); return; }
+    running = true;
+    document.getElementById('s-btn').textContent = "إيقاف (سيضيع الوقت)";
+    document.getElementById('s-btn').style.background = "#ff4d6d";
     
     timer = setInterval(() => {
       remaining--;
       updateUI();
       if(remaining <= 0) {
         clearInterval(timer);
-        finish();
+        save();
       }
     }, 1000);
   }
@@ -182,29 +171,25 @@
   function updateUI() {
     const m = Math.floor(remaining / 60).toString().padStart(2, '0');
     const s = (remaining % 60).toString().padStart(2, '0');
-    const txt = `${m}:${s}`;
-    document.getElementById('timer-txt').textContent = txt;
-    document.getElementById('b-timer').textContent = txt;
-    document.getElementById('prog-circle').style.strokeDashoffset = 628 * (1 - (remaining / total));
+    document.getElementById('display').textContent = `${m}:${s}`;
+    document.getElementById('prog').style.strokeDashoffset = 628 * (1 - (remaining / total));
   }
 
-  function finish() {
-    let stats = JSON.parse(localStorage.getItem('study_' + currentUser.uid) || '{"mins":0}');
-    stats.mins += Math.floor(total / 60);
-    localStorage.setItem('study_' + currentUser.uid, JSON.stringify(stats));
-    alert("عمل رائع يا " + currentUser.displayName);
+  function save() {
+    let data = JSON.parse(localStorage.getItem('rec_' + user.uid) || '{"mins":0}');
+    data.mins += Math.floor(total / 60);
+    localStorage.setItem('rec_' + user.uid, JSON.stringify(data));
+    alert("بطل يا علي! تم حفظ الوقت في سجلك.");
     location.reload();
   }
 
   function loadStats() {
-    let stats = JSON.parse(localStorage.getItem('study_' + currentUser.uid) || '{"mins":0}');
-    document.getElementById('total-txt').textContent = stats.mins + " د";
-    if(stats.mins > 100) document.getElementById('u-rank').textContent = "مكافح 🔥";
+    let data = JSON.parse(localStorage.getItem('rec_' + user.uid) || '{"mins":0}');
+    document.getElementById('total-mins').textContent = data.mins + " د";
   }
 
-  function quit() { if(confirm("هل ستنسحب؟")) location.reload(); }
   function logout() { firebase.auth().signOut().then(() => location.reload()); }
-  firebase.auth().onAuthStateChanged(user => { if(user) init(user); });
+  firebase.auth().onAuthStateChanged(u => { if(u) setup(u); });
 </script>
 </body>
 </html>
